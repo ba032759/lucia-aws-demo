@@ -13,6 +13,7 @@ const BATCH_MAX = 25;
 export interface User extends RegisteredDatabaseUserAttributes {
   PK: `USER#${UserId}`;
   SK: `USER#${UserId}`;
+  passwordHash: string;
 }
 type SessionId = string;
 
@@ -153,7 +154,7 @@ export class DynamodbAdapter implements Adapter {
   }
 
   public async deleteExpiredSessions(): Promise<void> {
-    // better to use TTL, since this will to a full table scan
+    // better to use TTL, since   this will to a full table scan
     const { Items } = await this.client.scan({
       TableName: this.tableName,
       FilterExpression: "attribute_not_exists(ExpiresAt) OR ExpiresAt < :now",
@@ -186,8 +187,8 @@ function transformIntoDatabaseUser(user: User): DatabaseUser {
   };
 }
 
-function transformIntoDatabaseSession(value: Session): DatabaseSession {
-  const { PK: id, SK: userId, ExpiresAt: expiresAt, ...attributes } = value;
+function transformIntoDatabaseSession(session: Session): DatabaseSession {
+  const { PK: id, SK: userId, ExpiresAt: expiresAt, ...attributes } = session;
   return {
     id: parseSessionId(id),
     userId: parseUserId(userId),

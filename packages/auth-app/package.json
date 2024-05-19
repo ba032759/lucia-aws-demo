@@ -1,0 +1,23 @@
+{
+  "type": "module",
+  "scripts": {
+    "build": "esbuild --bundle --outfile=./dist/index.js --platform=node --target=node20 ./src/index.ts",
+    "deploy": "run-s build zip update",
+    "update": "aws lambda update-function-code --zip-file fileb://lambda.zip --function-name hello",
+    "zip": "zip -j lambda.zip dist/index.js"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.138",
+    "esbuild": "^0.17.11",
+    "npm-run-all2": "^6.1.1",
+    "typesafe-dynamodb": "^0.2.5"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.577.0",
+    "@aws-sdk/lib-dynamodb": "^3.577.0",
+    "hono": "^4.3.7",
+    "lucia": "^3.2.0",
+    "sst": "ion",
+    "zod": "^3.23.8"
+  }
+}
