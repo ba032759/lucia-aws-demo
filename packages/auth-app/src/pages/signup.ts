@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { setCookie } from "hono/cookie";
-import { hash } from "./scrypt";
+import { hash } from "../scrypt";
 import { generateIdFromEntropySize } from "lucia";
-import { lucia } from "./auth";
-import { createUser } from "./models";
-import client from "./config/database";
+import { lucia } from "../auth";
+import { createUser } from "../models";
+import client from "../config/database";
 
 const app = new Hono();
 

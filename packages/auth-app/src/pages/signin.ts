@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
-import { verify } from "./scrypt";
-import { lucia } from "./auth";
-import { getUser } from "./models";
+import { verify } from "../scrypt";
+import { lucia } from "../auth";
+import { getUser } from "../models";
 import { setCookie } from "hono/cookie";
-import client from "./config/database";
+import client from "../config/database";
 
 const app = new Hono();
 

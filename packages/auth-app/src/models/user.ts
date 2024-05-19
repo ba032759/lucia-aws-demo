@@ -34,7 +34,6 @@ export const getUser = async (
   client: TypeSafeDocumentClientV3<DatabaseUser | Session, "PK", "SK">,
   userId: string
 ): Promise<User | undefined> => {
-  console.log("userId", userId);
   const { Item } = await client.get({
     TableName: tableName,
     Key: {
