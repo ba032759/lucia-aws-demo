@@ -13,14 +13,15 @@ const BATCH_MAX = 25;
 export interface User extends RegisteredDatabaseUserAttributes {
   PK: `USER#${UserId}`;
   SK: `USER#${UserId}`;
-  passwordHash: string;
+  [key: string]: string | number | boolean | null | ArrayBuffer;
 }
-type SessionId = string;
 
+type SessionId = string;
 export interface Session extends RegisteredDatabaseSessionAttributes {
   PK: `SESSION#${SessionId}`;
   SK: `USER#${UserId}`;
   ExpiresAt: string;
+  [key: string]: string | number | boolean | null | ArrayBuffer;
 }
 
 export class DynamodbAdapter implements Adapter {

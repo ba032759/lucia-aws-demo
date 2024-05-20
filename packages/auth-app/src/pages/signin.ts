@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { html } from "hono/html";
 import { verify } from "../scrypt";
 import { lucia } from "../auth";
-import { getUser } from "../models";
+import { getUserByName } from "../models";
 import { setCookie } from "hono/cookie";
 import client from "../config/database";
 
@@ -49,7 +49,7 @@ app.post("/", async (c) => {
     });
   }
 
-  const existingUser = await getUser(client, username);
+  const existingUser = await getUserByName(client, username);
   if (!existingUser) {
     // NOTE:
     // Returning immediately allows malicious actors to figure out valid usernames from response times,

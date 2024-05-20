@@ -4,7 +4,10 @@ import { lucia } from "../auth";
 import { setCookie } from "hono/cookie";
 import type { Session } from "lucia";
 
-const app = new Hono();
+type Variables = {
+  session: Session;
+};
+const app = new Hono<{ Variables: Variables }>();
 
 app.get("/", (c) =>
   c.html(
@@ -20,7 +23,7 @@ app.get("/", (c) =>
 );
 
 app.post("/", async (c) => {
-  const session = c.get("session") as Session;
+  const session = c.get("session");
   if (!session) {
     return new Response(null, {
       status: 401,

@@ -8,7 +8,10 @@ import signin from "./pages/signin";
 import signout from "./pages/signout";
 import { luciaMiddleware } from "./middleware";
 
-const app = new Hono();
+type Variables = {
+  user: string;
+};
+const app = new Hono<{ Variables: Variables }>();
 app.use(csrf());
 app.use(luciaMiddleware);
 
