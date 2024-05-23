@@ -1,5 +1,5 @@
 import { Lucia } from "lucia";
-import { DynamodbAdapter } from "../../lucia-dynamodb-adapter/src";
+import { DynamodbAdapter } from "lucia-dynamodb-adapter";
 import client from "./config/database";
 
 const tableName = process.env.TABLE_NAME;

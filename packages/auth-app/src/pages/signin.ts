@@ -49,6 +49,7 @@ app.post("/", async (c) => {
     });
   }
 
+  // @ts-ignore
   const existingUser = await getUserByName(client, username);
   if (!existingUser) {
     // NOTE:

@@ -1,18 +1,6 @@
-import { Hono } from "hono";
 import { lucia } from "../auth";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
-
-import type { User, Session } from "lucia";
-
-const app = new Hono<{
-  Variables: {
-    user: User | null;
-    session: Session | null;
-  };
-}>();
-
-// see https://hono.dev/middleware/builtin/csrf for more options
 
 export const luciaMiddleware = createMiddleware(async (c, next) => {
   const sessionId = getCookie(c, lucia.sessionCookieName) ?? null;

@@ -1,9 +1,6 @@
 import type { TypeSafeDocumentClientV3 } from "typesafe-dynamodb/lib/document-client-v3";
 import { z } from "zod";
-import type {
-  User as DatabaseUser,
-  Session,
-} from "../../../lucia-dynamodb-adapter/src";
+import type { User as DatabaseUser, Session } from "lucia-dynamodb-adapter";
 
 type userName = string;
 type UserId = string;
@@ -23,7 +20,7 @@ interface DynamoClient
     DatabaseUser | Session | Email | UserName,
     "PK",
     "SK"
-  > {}
+  > { }
 
 const tableName = process.env.TABLE_NAME;
 if (!tableName) {
@@ -45,7 +42,7 @@ export const createUser = async (client: DynamoClient, user: User) => {
   }
   const { id: userId, username, email, ...attributes } = parsedUser.data;
   try {
-    const output = await client.transactWrite({
+    await client.transactWrite({
       TransactItems: [
         {
           Put: {
