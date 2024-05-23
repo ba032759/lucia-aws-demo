@@ -1,6 +1,7 @@
 import type { TypeSafeDocumentClientV3 } from "typesafe-dynamodb/lib/document-client-v3";
 import { z } from "zod";
 import type { User as DatabaseUser, Session } from "lucia-dynamodb-adapter";
+import { lucia } from "../auth";
 
 type userName = string;
 type UserId = string;
@@ -137,4 +138,58 @@ const transformIntoUser = (item: DatabaseUser): User => {
     email: attributes.email,
     username: attributes.username,
   };
+};
+
+export const deleteUser = async (client: DynamoClient, userId: string) => {
+  // delete all sessions
+  const sessions = await lucia.getUserSessions(userId);
+  client.batchWrite({
+    RequestItems: {
+      [tableName]: sessions.map((session) => ({
+        DeleteRequest: {
+          Key: {
+            PK: `SESSION#${session.id}`,
+            SK: `SESSION#${session.id}`,
+          },
+        },
+      })),
+    },
+  });
+  // delete user
+  try {
+    client.transactWrite({
+      TransactItems: [
+        {
+          Delete: {
+            TableName: tableName,
+            Key: {
+              PK: `USER#${userId}`,
+              SK: `USER#${userId}`,
+            },
+          },
+        },
+        {
+          Delete: {
+            TableName: tableName,
+            Key: {
+              PK: `userName#${userId}`,
+              SK: `userName#${userId}`,
+            },
+          },
+        },
+        {
+          Delete: {
+            TableName: tableName,
+            Key: {
+              PK: `email#${userId}`,
+              SK: `email#${userId}`,
+            },
+          },
+        },
+      ],
+    });
+  } catch (_) {
+    return 409;
+  }
+  return 200;
 };
