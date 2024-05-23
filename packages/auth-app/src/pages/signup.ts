@@ -7,6 +7,10 @@ import { lucia } from "../auth";
 import { createUser } from "../models";
 import client from "../config/database";
 import { z } from "zod";
+import {
+  generateEmailVerificationCode,
+  sendEmailVerificationCode,
+} from "../models/emailVerificationCode";
 
 const app = new Hono();
 
@@ -82,6 +86,13 @@ app.post("/", async (c) => {
       status: 409,
     });
   }
+
+  const emailVerificationCode = await generateEmailVerificationCode(
+    client,
+    userId,
+    parsedEmailData,
+  );
+  await sendEmailVerificationCode(parsedEmailData, emailVerificationCode);
 
   const session = await lucia.createSession(userId, {});
   const sessionCookie = lucia.createSessionCookie(session.id);

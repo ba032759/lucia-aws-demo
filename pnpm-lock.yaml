@@ -38,6 +38,9 @@ importers:
       lucia-dynamodb-adapter:
         specifier: workspace:^
         version: link:../lucia-dynamodb-adapter
+      oslo:
+        specifier: ^1.2.0
+        version: 1.2.0
       sst:
         specifier: ion
         version: 3.0.15

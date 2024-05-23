@@ -19,6 +19,7 @@
     "hono": "^4.3.7",
     "lucia": "^3.2.0",
     "lucia-dynamodb-adapter": "workspace:^",
+    "oslo": "^1.2.0",
     "sst": "ion",
     "zod": "^3.23.8"
   }

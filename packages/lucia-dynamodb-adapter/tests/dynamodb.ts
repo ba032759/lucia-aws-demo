@@ -13,8 +13,12 @@ const docClient = DynamoDBDocument.from(client) as TypeSafeDocumentClientV3<
 >;
 
 const tableName = process.env.TABLE_NAME;
+const indexName = process.env.INDEX_NAME;
 if (!tableName) {
   throw new Error("Missing TABLE_NAME environment variable");
+}
+if (!indexName) {
+  throw new Error("Missing INDEX_NAME environment variable");
 }
 const { id: databaseUserId, attributes } = databaseUser;
 await docClient.put({
@@ -25,7 +29,7 @@ await docClient.put({
     ...attributes,
   },
 });
-const adapter = new DynamodbAdapter(docClient, tableName);
+const adapter = new DynamodbAdapter(docClient, tableName, indexName);
 await testAdapter(adapter);
 
 process.exit(0);

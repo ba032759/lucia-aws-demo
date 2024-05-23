@@ -28,6 +28,7 @@ export default $config({
       link: [table],
       environment: {
         TABLE_NAME: table.name,
+        INDEX_NAME: "GSI1",
       },
     });
 

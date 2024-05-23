@@ -65,15 +65,13 @@ app.post("/", async (c) => {
       status: 400,
     });
   }
-
-  const validPassword = await verify(existingUser.passwordHash, password);
+  const validPassword = await verify(existingUser.PasswordHash, password);
   if (!validPassword) {
     return new Response("Incorrect username or password", {
       status: 400,
     });
   }
-
-  const session = await lucia.createSession(existingUser.id, {});
+  const session = await lucia.createSession(existingUser.Id, {});
   const sessionCookie = lucia.createSessionCookie(session.id);
   setCookie(
     c,

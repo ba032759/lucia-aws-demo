@@ -1,47 +1,19 @@
-import type { TypeSafeDocumentClientV3 } from "typesafe-dynamodb/lib/document-client-v3";
-import { z } from "zod";
-import type { User as DatabaseUser, Session } from "lucia-dynamodb-adapter";
+import type { User as DatabaseUser } from "lucia-dynamodb-adapter";
+import type { User } from "lucia";
 import { lucia } from "../auth";
-
-type userName = string;
-type UserId = string;
-type email = string;
-export interface UserName {
-  PK: `userName#${userName}`;
-  SK: `USER#${UserId}`;
-  [key: string]: string | number | boolean | null | ArrayBuffer;
-}
-export interface Email {
-  PK: `email#${email}`;
-  SK: `USER#${UserId}`;
-  [key: string]: string | number | boolean | null | ArrayBuffer;
-}
-interface DynamoClient
-  extends TypeSafeDocumentClientV3<
-    DatabaseUser | Session | Email | UserName,
-    "PK",
-    "SK"
-  > { }
+import { User as ZodUser, type DynamoClient } from "../types";
 
 const tableName = process.env.TABLE_NAME;
 if (!tableName) {
   throw new Error("Missing TABLE_NAME environment variable");
 }
 
-const User = z.object({
-  id: z.string(),
-  username: z.string(),
-  email: z.string().min(5).email(),
-  passwordHash: z.string(),
-});
-export type User = z.infer<typeof User>;
-
-export const createUser = async (client: DynamoClient, user: User) => {
-  const parsedUser = User.safeParse(user);
-  if (!parsedUser.success) {
+export const createUser = async (client: DynamoClient, user: ZodUser) => {
+  const parseResult = ZodUser.safeParse(user);
+  if (!parseResult.success) {
     return 422;
   }
-  const { id: userId, username, email, ...attributes } = parsedUser.data;
+  const { id, passwordHash, username, email } = parseResult.data;
   try {
     await client.transactWrite({
       TransactItems: [
@@ -49,11 +21,13 @@ export const createUser = async (client: DynamoClient, user: User) => {
           Put: {
             TableName: tableName,
             Item: {
-              PK: `USER#${userId}`,
-              SK: `USER#${userId}`,
-              email,
-              username,
-              ...attributes,
+              PK: `USER#${id}`,
+              SK: `USER#${id}`,
+              Id: id,
+              UserName: username,
+              Email: email,
+              EmailVerified: false,
+              PasswordHash: passwordHash,
             },
             ConditionExpression: "attribute_not_exists(PK)",
           },
@@ -64,7 +38,7 @@ export const createUser = async (client: DynamoClient, user: User) => {
             Item: {
               PK: `userName#${username}`,
               SK: `userName#${username}`,
-              userId,
+              Id: id,
             },
             ConditionExpression: "attribute_not_exists(PK)",
           },
@@ -75,7 +49,7 @@ export const createUser = async (client: DynamoClient, user: User) => {
             Item: {
               PK: `email#${email}`,
               SK: `email#${email}`,
-              userId,
+              Id: id,
             },
             ConditionExpression: "attribute_not_exists(PK)",
           },
@@ -91,7 +65,7 @@ export const createUser = async (client: DynamoClient, user: User) => {
 export const getUserByName = async (
   client: DynamoClient,
   username: string,
-): Promise<User | undefined> => {
+): Promise<DatabaseUser | undefined> => {
   const { Items } = await client.query({
     TableName: tableName,
     KeyConditionExpression: "PK = :pk",
@@ -102,42 +76,20 @@ export const getUserByName = async (
   if (
     !Items ||
     Items.length === 0 ||
-    !Items[0].SK.startsWith("userName") ||
-    !Items[0].userId
+    !Items[0].PK.startsWith("userName") ||
+    !Items[0].SK.startsWith("USER#")
   ) {
     return undefined;
   }
-  const userId = Items[0].userId;
   const { Item } = await client.get({
     TableName: tableName,
     Key: {
-      PK: `USER#${userId}`,
-      SK: `USER#${userId}`,
+      PK: Items[0].SK,
+      SK: Items[0].SK,
     },
   });
   if (!Item) return undefined;
-  return transformIntoUser(Item);
-};
-
-const transformIntoUser = (item: DatabaseUser): User => {
-  const { PK: id, ...attributes } = item;
-  if (
-    !id ||
-    !attributes.passwordHash ||
-    typeof attributes.passwordHash !== "string" ||
-    !attributes.username ||
-    typeof attributes.username !== "string" ||
-    !attributes.email ||
-    typeof attributes.email !== "string"
-  ) {
-    throw new Error("Invalid user");
-  }
-  return {
-    id: item.PK.replace("USER#", ""),
-    passwordHash: attributes.passwordHash,
-    email: attributes.email,
-    username: attributes.username,
-  };
+  return Item;
 };
 
 export const deleteUser = async (client: DynamoClient, userId: string) => {
@@ -192,4 +144,21 @@ export const deleteUser = async (client: DynamoClient, userId: string) => {
     return 409;
   }
   return 200;
+};
+
+export const updateEmailVerified = async (
+  client: DynamoClient,
+  userId: string,
+) => {
+  await client.update({
+    TableName: tableName,
+    Key: {
+      PK: `USER#${userId}`,
+      SK: `USER#${userId}`,
+    },
+    UpdateExpression: "set emailVerified = :emailVerified",
+    ExpressionAttributeValues: {
+      ":emailVerified": true,
+    },
+  });
 };

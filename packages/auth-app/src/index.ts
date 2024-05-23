@@ -6,6 +6,7 @@ import api from "./pages/api";
 import signup from "./pages/signup";
 import signin from "./pages/signin";
 import signout from "./pages/signout";
+import emailVerification from "./pages/email-verification";
 import { luciaMiddleware } from "./middleware";
 
 type Variables = {
@@ -30,6 +31,9 @@ app.get("/", (c) =>
           <li>
             <a href="/signout">Sign out</a>
           </li>
+          <li>
+            <a href="/email-verification">Verify Email</a>
+          </li>
         </ul>
       </body>
     </html>`,
@@ -47,5 +51,6 @@ app.route("/api", api);
 app.route("/signup", signup);
 app.route("/signin", signin);
 app.route("/signout", signout);
+app.route("/email-verification", emailVerification);
 
 export const handler = handle(app);

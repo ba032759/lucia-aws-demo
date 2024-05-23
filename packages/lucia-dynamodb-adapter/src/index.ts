@@ -14,6 +14,7 @@ const BATCH_MAX = 25;
 export interface User extends RegisteredDatabaseUserAttributes {
   PK: `USER#${UserId}`;
   SK: `USER#${UserId}`;
+  PasswordHash: string;
   [key: string]: string | number | boolean | null | ArrayBuffer;
 }
 
@@ -30,10 +31,16 @@ export interface Session extends RegisteredDatabaseSessionAttributes {
 export class DynamodbAdapter implements Adapter {
   private client: TypeSafeDocumentClientV3<Session | User, "PK">;
   private tableName: string;
+  private indexName: string;
 
-  constructor(client: DynamoDBDocumentClient, tableName: string) {
+  constructor(
+    client: DynamoDBDocumentClient,
+    tableName: string,
+    indexName: string,
+  ) {
     this.client = client as TypeSafeDocumentClientV3<Session | User, "PK">;
     this.tableName = tableName;
+    this.indexName = indexName;
   }
 
   public async deleteSession(sessionId: string): Promise<void> {
@@ -54,8 +61,9 @@ export class DynamodbAdapter implements Adapter {
   public async deleteUserSessions(userId: UserId): Promise<void> {
     const result = await this.client.query({
       TableName: this.tableName,
-      IndexName: "UserIdIndex",
-      KeyConditionExpression: "SK = :userId and begins_with(PK, :session)",
+      IndexName: this.indexName,
+      KeyConditionExpression:
+        "GSI1PK = :userId and begins_with(GSI1SK, :session)",
       ExpressionAttributeValues: {
         ":userId": `USER#${userId}`,
         ":session": "SESSION#",
@@ -109,8 +117,9 @@ export class DynamodbAdapter implements Adapter {
   public async getUserSessions(userId: UserId): Promise<DatabaseSession[]> {
     const { Items } = await this.client.query({
       TableName: this.tableName,
-      IndexName: "UserIdIndex",
-      KeyConditionExpression: "SK = :userId and begins_with(PK, :session)",
+      IndexName: this.indexName,
+      KeyConditionExpression:
+        "GSI1PK = :userId and begins_with(GSI1SK, :session)",
       ExpressionAttributeValues: {
         ":userId": `USER#${userId}`,
         ":session": "SESSION#",
@@ -194,7 +203,14 @@ function transformIntoDatabaseUser(user: User): DatabaseUser {
 }
 
 function transformIntoDatabaseSession(session: Session): DatabaseSession {
-  const { PK: id, SK: userId, ExpiresAt: expiresAt, ...attributes } = session;
+  const {
+    PK: id,
+    SK: userId,
+    ExpiresAt: expiresAt,
+    GSI1PK,
+    GSI1SK,
+    ...attributes
+  } = session;
   return {
     id: parseSessionId(id),
     userId: parseUserId(userId),
