@@ -13,10 +13,12 @@ export default $config({
       fields: {
         PK: "string",
         SK: "string",
+        GSI1PK: "string",
+        GSI1SK: "string",
       },
       primaryIndex: { hashKey: "PK", rangeKey: "SK" },
       globalIndexes: {
-        UserIdIndex: { hashKey: "SK", rangeKey: "PK" },
+        GSI1: { hashKey: "GSI1PK", rangeKey: "GSI1SK" },
       },
     });
 

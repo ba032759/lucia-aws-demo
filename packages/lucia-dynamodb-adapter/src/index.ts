@@ -21,6 +21,8 @@ type SessionId = string;
 export interface Session extends RegisteredDatabaseSessionAttributes {
   PK: `SESSION#${SessionId}`;
   SK: `USER#${UserId}`;
+  GSI1PK: `USER#${UserId}`;
+  GSI1SK: `SESSION#${SessionId}`;
   ExpiresAt: string;
   [key: string]: string | number | boolean | null | ArrayBuffer;
 }
@@ -125,6 +127,8 @@ export class DynamodbAdapter implements Adapter {
       PK: `SESSION#${session.id}`,
       SK: `USER#${session.userId}`,
       ExpiresAt: session.expiresAt.toISOString(),
+      GSI1PK: `USER#${session.userId}`,
+      GSI1SK: `SESSION#${session.id}`,
       ...session.attributes,
     };
     await this.client.put({

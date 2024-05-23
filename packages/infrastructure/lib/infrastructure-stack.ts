@@ -14,9 +14,9 @@ export class InfrastructureStack extends cdk.Stack {
       timeToLiveAttribute: "ExpiresAt",
     });
     table.addGlobalSecondaryIndex({
-      indexName: "UserIdIndex",
-      partitionKey: { name: "SK", type: AttributeType.STRING },
-      sortKey: { name: "PK", type: AttributeType.STRING },
+      indexName: "GSI1",
+      partitionKey: { name: "GSI1PK", type: AttributeType.STRING },
+      sortKey: { name: "GSI1SK", type: AttributeType.STRING },
     });
   }
 }
