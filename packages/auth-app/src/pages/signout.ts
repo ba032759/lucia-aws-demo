@@ -18,8 +18,8 @@ app.get("/", (c) =>
           <button>Sign out</button>
         </form>
       </body>
-    </html>`
-  )
+    </html>`,
+  ),
 );
 
 app.post("/", async (c) => {
@@ -37,7 +37,7 @@ app.post("/", async (c) => {
     c,
     sessionCookie.name,
     sessionCookie.value,
-    sessionCookie.attributes
+    sessionCookie.attributes,
   );
 
   return c.redirect("/signin");

@@ -92,7 +92,7 @@ export const createUser = async (client: DynamoClient, user: User) => {
 
 export const getUserByName = async (
   client: DynamoClient,
-  username: string
+  username: string,
 ): Promise<User | undefined> => {
   const { Items } = await client.query({
     TableName: tableName,

@@ -21,8 +21,8 @@ app.get("/", (c) =>
           <button>Continue</button>
         </form>
       </body>
-    </html>`
-  )
+    </html>`,
+  ),
 );
 
 app.post("/", async (c) => {
@@ -78,7 +78,7 @@ app.post("/", async (c) => {
     c,
     sessionCookie.name,
     sessionCookie.value,
-    sessionCookie.attributes
+    sessionCookie.attributes,
   );
 
   return c.redirect("/");

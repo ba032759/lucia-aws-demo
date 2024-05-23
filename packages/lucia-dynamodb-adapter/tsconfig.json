@@ -8,14 +8,8 @@
     "declaration": true,
     "skipLibCheck": true,
     "noImplicitAny": true,
-    "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "src",
-  ],
-  "exclude": [
-    "node_modules/",
-    "**/*.test.ts",
-    ".sst/"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules/", "**/*.test.ts", ".sst/"]
 }

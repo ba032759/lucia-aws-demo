@@ -32,8 +32,8 @@ app.get("/", (c) =>
           </li>
         </ul>
       </body>
-    </html>`
-  )
+    </html>`,
+  ),
 );
 app.get("/foo", async (c) => {
   console.log("foo context", c);

@@ -9,7 +9,7 @@ import type {
 const client = new DynamoDB({ region: "eu-central-1" });
 
 const docClient = DynamoDBDocument.from(
-  client
+  client,
 ) as unknown as TypeSafeDocumentClientV3<DatabaseUser | Session, "PK", "SK">;
 
 export default docClient;

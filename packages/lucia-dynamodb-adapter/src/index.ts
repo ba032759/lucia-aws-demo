@@ -10,6 +10,7 @@ import type { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import type { TypeSafeDocumentClientV3 } from "typesafe-dynamodb/lib/document-client-v3.js";
 
 const BATCH_MAX = 25;
+
 export interface User extends RegisteredDatabaseUserAttributes {
   PK: `USER#${UserId}`;
   SK: `USER#${UserId}`;
@@ -75,14 +76,14 @@ export class DynamodbAdapter implements Adapter {
               },
             })),
           },
-        })
+        }),
       );
     }
     await Promise.all(batches);
   }
 
   public async getSessionAndUser(
-    sessionId: string
+    sessionId: string,
   ): Promise<[session: DatabaseSession | null, user: DatabaseUser | null]> {
     const { Items } = await this.client.query({
       TableName: this.tableName,
@@ -134,7 +135,7 @@ export class DynamodbAdapter implements Adapter {
 
   public async updateSessionExpiration(
     sessionId: string,
-    expiresAt: Date
+    expiresAt: Date,
   ): Promise<void> {
     const { Items } = await this.client.query({
       TableName: this.tableName,
