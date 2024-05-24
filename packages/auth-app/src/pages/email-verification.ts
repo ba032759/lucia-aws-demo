@@ -2,9 +2,8 @@ import type { User } from "lucia";
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { lucia } from "../auth";
-import { verifyEmailVerificationCode } from "../models/emailVerificationCode";
+import { verifyEmailVerificationCode, updateEmailVerified } from "../models";
 import client from "../config/database";
-import { updateEmailVerified } from "../models";
 
 type Variables = {
   user: User;
@@ -22,8 +21,8 @@ app.get("/", (c) =>
           <button>Verify</button>
         </form>
       </body>
-    </html>`,
-  ),
+    </html>`
+  )
 );
 
 app.post("/", async (c) => {
