@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
 import { html } from "hono/html";
 import { setCookie } from "hono/cookie";
 import { Scrypt } from "oslo/password";
@@ -33,77 +34,68 @@ app.get("/", (c) =>
   ),
 );
 
-app.post("/", async (c) => {
-  const formData = await c.req.formData();
-  const username = formData.get("username");
-  const email = formData.get("email");
-  const parsedEmail = z.string().min(5).email().safeParse(email);
-  if (!parsedEmail.success) {
-    return new Response("Invalid email", {
-      status: 400,
-    });
-  }
-  // username must be between 4 ~ 31 characters, and only consists of lowercase letters, 0-9, -, and _
-  // keep in mind some database (e.g. mysql) are case insensitive
-  if (
-    typeof username !== "string" ||
-    username.length < 3 ||
-    username.length > 31 ||
-    !/^[a-z0-9_-]+$/.test(username)
-  ) {
-    return new Response("Invalid username", {
-      status: 400,
-    });
-  }
-  const password = formData.get("password");
-  if (
-    typeof password !== "string" ||
-    password.length < 6 ||
-    password.length > 255
-  ) {
-    return new Response("Invalid password", {
-      status: 400,
-    });
-  }
+app.post(
+  "/",
+  zValidator(
+    "form",
+    z.object({
+      // username must be between 4 ~ 31 characters, and only consists of lowercase letters, 0-9, -, and _
+      username: z
+        .string()
+        .min(3)
+        .max(31)
+        .regex(/^[a-z0-9_-]+$/)
+        .trim(),
+      email: z.string().min(5).email().trim(),
+      password: z.string().min(6).max(255),
+    }),
+    (data, c) => {
+      if (!data.success) {
+        return c.text(`Invalid input! ${data.error}`, 422);
+      }
+    },
+  ),
+  async (c) => {
+    const { password, email, username } = await c.req.valid("form");
 
-  const userId = generateIdFromEntropySize(10); // 16 characters long
-  const scrypt = new Scrypt();
-  const passwordHash = await scrypt.hash(password);
-  const parsedEmailData = parsedEmail.data;
+    const userId = generateIdFromEntropySize(10); // 16 characters long
+    const scrypt = new Scrypt();
+    const passwordHash = await scrypt.hash(password);
 
-  const statusCode = await createUser(client, {
-    id: userId,
-    passwordHash,
-    username,
-    email: parsedEmailData,
-  });
-  if (statusCode === 422) {
-    return new Response("Invalid data", {
-      status: 422,
+    const statusCode = await createUser(client, {
+      id: userId,
+      passwordHash,
+      username,
+      email,
     });
-  }
-  if (statusCode === 409) {
-    return new Response("Username or email already exists", {
-      status: 409,
-    });
-  }
+    if (statusCode === 422) {
+      return new Response("Invalid data", {
+        status: 422,
+      });
+    }
+    if (statusCode === 409) {
+      return new Response("Username or email already exists", {
+        status: 409,
+      });
+    }
 
-  const emailVerificationCode = await generateEmailVerificationCode(
-    client,
-    userId,
-    parsedEmailData,
-  );
-  await sendEmailVerificationCode(parsedEmailData, emailVerificationCode);
+    const emailVerificationCode = await generateEmailVerificationCode(
+      client,
+      userId,
+      email,
+    );
+    await sendEmailVerificationCode(email, emailVerificationCode);
 
-  const session = await lucia.createSession(userId, {});
-  const sessionCookie = lucia.createSessionCookie(session.id);
-  setCookie(
-    c,
-    sessionCookie.name,
-    sessionCookie.value,
-    sessionCookie.attributes,
-  );
+    const session = await lucia.createSession(userId, {});
+    const sessionCookie = lucia.createSessionCookie(session.id);
+    setCookie(
+      c,
+      sessionCookie.name,
+      sessionCookie.value,
+      sessionCookie.attributes,
+    );
 
-  return c.redirect("/");
-});
+    return c.redirect("/");
+  },
+);
 export default app;
