@@ -7,12 +7,12 @@ type UserId = string;
 type email = string;
 export interface UserName {
   PK: `userName#${userName}`;
-  SK: `USER#${UserId}`;
+  SK: `userName#${userName}`;
   [key: string]: string | number | boolean | null | ArrayBuffer;
 }
-export interface Email {
+export interface UserEmail {
   PK: `email#${email}`;
-  SK: `USER#${UserId}`;
+  SK: `email#${email}`;
   [key: string]: string | number | boolean | null | ArrayBuffer;
 }
 export const User = z.object({
@@ -33,7 +33,7 @@ export interface EmailVerificationCode {
 }
 export interface DynamoClient
   extends TypeSafeDocumentClientV3<
-    DatabaseUser | Session | Email | UserName | EmailVerificationCode,
+    DatabaseUser | Session | UserEmail | UserName | EmailVerificationCode,
     "PK",
     "SK"
   > {}

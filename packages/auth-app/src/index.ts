@@ -34,6 +34,9 @@ app.get("/", (c) =>
           <li>
             <a href="/email-verification">Verify Email</a>
           </li>
+          <li>
+            <a href="/foo">Secret content</a>
+          </li>
         </ul>
       </body>
     </html>`,
@@ -43,7 +46,7 @@ app.get("/foo", async (c) => {
   console.log("foo context", c);
   const user = c.get("user");
   if (!user) {
-    return c.body(null, 401);
+    return c.json({ content: "Unauthorized", status: 401 }, 401);
   }
   return c.json({ content: "Secret content" });
 });

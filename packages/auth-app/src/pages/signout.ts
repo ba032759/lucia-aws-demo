@@ -40,6 +40,6 @@ app.post("/", async (c) => {
     sessionCookie.attributes,
   );
 
-  return c.redirect("/signin");
+  return c.redirect("/");
 });
 export default app;

@@ -1,7 +1,11 @@
 import type { User as DatabaseUser } from "lucia-dynamodb-adapter";
-import type { User } from "lucia";
 import { lucia } from "../auth";
-import { User as ZodUser, type DynamoClient } from "../types";
+import {
+  type UserEmail,
+  type UserName,
+  User as ZodUser,
+  type DynamoClient,
+} from "../types";
 
 const tableName = process.env.TABLE_NAME;
 if (!tableName) {
@@ -14,43 +18,46 @@ export const createUser = async (client: DynamoClient, user: ZodUser) => {
     return 422;
   }
   const { id, passwordHash, username, email } = parseResult.data;
+  const userItem: DatabaseUser = {
+    PK: `USER#${id}`,
+    SK: `USER#${id}`,
+    Id: id,
+    Username: username,
+    Email: email,
+    EmailVerified: false,
+    PasswordHash: passwordHash,
+  };
+  const userEmailItem: UserEmail = {
+    PK: `email#${email}`,
+    SK: `email#${email}`,
+    Id: id,
+  };
+  const userNameItem: UserName = {
+    PK: `userName#${username}`,
+    SK: `userName#${username}`,
+    Id: id,
+  };
   try {
     await client.transactWrite({
       TransactItems: [
         {
           Put: {
             TableName: tableName,
-            Item: {
-              PK: `USER#${id}`,
-              SK: `USER#${id}`,
-              Id: id,
-              UserName: username,
-              Email: email,
-              EmailVerified: false,
-              PasswordHash: passwordHash,
-            },
+            Item: userItem,
             ConditionExpression: "attribute_not_exists(PK)",
           },
         },
         {
           Put: {
             TableName: tableName,
-            Item: {
-              PK: `userName#${username}`,
-              SK: `userName#${username}`,
-              Id: id,
-            },
+            Item: userNameItem,
             ConditionExpression: "attribute_not_exists(PK)",
           },
         },
         {
           Put: {
             TableName: tableName,
-            Item: {
-              PK: `email#${email}`,
-              SK: `email#${email}`,
-              Id: id,
-            },
+            Item: userEmailItem,
             ConditionExpression: "attribute_not_exists(PK)",
           },
         },
@@ -76,8 +83,8 @@ export const getUserByName = async (
   if (
     !Items ||
     Items.length === 0 ||
-    !Items[0].PK.startsWith("userName") ||
-    !Items[0].SK.startsWith("USER#")
+    !Items[0].PK.startsWith("userName#") ||
+    !Items[0].SK.startsWith("userName#")
   ) {
     return undefined;
   }
@@ -89,7 +96,7 @@ export const getUserByName = async (
     },
   });
   if (!Item) return undefined;
-  return Item;
+  return Item as DatabaseUser;
 };
 
 export const deleteUser = async (client: DynamoClient, userId: string) => {

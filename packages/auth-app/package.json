@@ -2,6 +2,7 @@
   "name": "auth-app",
   "type": "module",
   "scripts": {
+    "dev": "sst dev",
     "build": "esbuild --bundle --outfile=./dist/index.js --platform=node --target=node20 ./src/index.ts",
     "deploy": "run-s build zip update",
     "update": "aws lambda update-function-code --zip-file fileb://lambda.zip --function-name hello",

@@ -21,8 +21,8 @@ app.get("/", (c) =>
           <button>Verify</button>
         </form>
       </body>
-    </html>`
-  )
+    </html>`,
+  ),
 );
 
 app.post("/", async (c) => {
