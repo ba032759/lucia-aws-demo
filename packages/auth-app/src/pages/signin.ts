@@ -1,12 +1,13 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
-import { verify } from "../scrypt";
+import { Scrypt } from "oslo/password";
 import { lucia } from "../auth";
 import { getUserByName } from "../models";
 import { setCookie } from "hono/cookie";
 import client from "../config/database";
 
 const app = new Hono();
+const scrypt = new Scrypt();
 
 app.get("/", (c) =>
   c.html(
@@ -65,7 +66,10 @@ app.post("/", async (c) => {
       status: 400,
     });
   }
-  const validPassword = await verify(existingUser.PasswordHash, password);
+  const validPassword = await scrypt.verify(
+    existingUser.PasswordHash,
+    password,
+  );
   if (!validPassword) {
     return new Response("Incorrect username or password", {
       status: 400,

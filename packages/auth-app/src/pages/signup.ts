@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { setCookie } from "hono/cookie";
-import { hash } from "../scrypt";
+import { Scrypt } from "oslo/password";
 import { generateIdFromEntropySize } from "lucia";
 import { lucia } from "../auth";
 import { createUser } from "../models";
@@ -67,7 +67,8 @@ app.post("/", async (c) => {
   }
 
   const userId = generateIdFromEntropySize(10); // 16 characters long
-  const passwordHash = await hash(password);
+  const scrypt = new Scrypt();
+  const passwordHash = await scrypt.hash(password);
   const parsedEmailData = parsedEmail.data;
 
   const statusCode = await createUser(client, {
