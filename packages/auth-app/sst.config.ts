@@ -30,6 +30,9 @@ export default $config({
         TABLE_NAME: table.name,
         INDEX_NAME: "GSI1",
       },
+      nodejs: {
+        install: ["oslo"],
+      },
     });
 
     return {
